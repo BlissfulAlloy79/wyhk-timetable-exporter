@@ -100,7 +100,6 @@ def main():
                 day_event_create(date=date, cycle=i["Cycle"], day=day)
                 lesson_event_create(date=date, day=day)
 
-
         with open('day_cycle.ics', 'wb') as f:
             f.write(day_cal.to_ical())
         with open('lesson_timetable.ics', 'wb') as f:
