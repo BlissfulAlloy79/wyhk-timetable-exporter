@@ -94,8 +94,9 @@ def lesson_event_create(meta):
     order = meta["Display"]
     date = datetime.strptime(meta["Date"], '%Y-%m-%dT00:00:00.000Z').date()
     day = meta["Day"]
+    tdy: dict = TIMETABLE[day - 1]
+
     if order == "F":
-        tdy = TIMETABLE[day - 1]
         for i in range(10):
             event = icalendar.Event()
             event.add('summary', tdy[f"P{i+1}_Subj"])
@@ -103,6 +104,27 @@ def lesson_event_create(meta):
             event.add('dtend', datetime.strptime(f"{date} {FDAY_END[i]}", '%Y-%m-%d %H:%M'))
             event.add('dtstamp', datetime.strptime(f"{date} {FDAY_START[i]}", '%Y-%m-%d %H:%M'))
             lsn_cal.add_component(event)
+    elif order == "H":
+        for i in range(6):
+            event = icalendar.Event()
+            event.add('summary', tdy[f"P{i + 1}_Subj"])
+            event.add('dtstart', datetime.strptime(f"{date} {HDAY_START[i]}", '%Y-%m-%d %H:%M'))
+            event.add('dtend', datetime.strptime(f"{date} {HDAY_END[i]}", '%Y-%m-%d %H:%M'))
+            event.add('dtstamp', datetime.strptime(f"{date} {HDAY_START[i]}", '%Y-%m-%d %H:%M'))
+            lsn_cal.add_component(event)
+        for i in range(6, 8):
+            event = icalendar.Event()
+            event.add('summary', tdy[f"P{i + 3}_Subj"])
+            event.add('dtstart', datetime.strptime(f"{date} {HDAY_START[i]}", '%Y-%m-%d %H:%M'))
+            event.add('dtend', datetime.strptime(f"{date} {HDAY_END[i]}", '%Y-%m-%d %H:%M'))
+            event.add('dtstamp', datetime.strptime(f"{date} {HDAY_START[i]}", '%Y-%m-%d %H:%M'))
+            lsn_cal.add_component(event)
+        event = icalendar.Event()
+        event.add('summary', f"{tdy['P7_Subj']} & {tdy['P8_Subj']}")
+        event.add('dtstart', datetime.strptime(f"{date} {HDAY_START[8]}", '%Y-%m-%d %H:%M'))
+        event.add('dtend', datetime.strptime(f"{date} {HDAY_END[8]}", '%Y-%m-%d %H:%M'))
+        event.add('dtstamp', datetime.strptime(f"{date} {HDAY_START[8]}", '%Y-%m-%d %H:%M'))
+        lsn_cal.add_component(event)
 
 
 def main():
@@ -134,6 +156,8 @@ def main():
             f.write(day_cal.to_ical())
         with open('lesson_timetable.ics', 'wb') as f:
             f.write(lsn_cal.to_ical())
+
+        print("Done!")
 
 
 if __name__ == "__main__":
