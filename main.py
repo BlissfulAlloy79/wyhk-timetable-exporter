@@ -17,6 +17,8 @@ CALENDAR: list
 TIMETABLE: list
 FDAY_START: list = ["08:15", "08:55", "09:50", "10:30", "11:25", "12:05", "14:05", "14:10", "14:20", "15:00"]
 FDAY_END: list = ["08:55", "09:35", "10:30", "11:10", "12:05", "12:45", "14:10", "14:20", "15:00", "15:40"]
+HDAY_START: list = ["08:10", "08:45", "09:30", "10:05", "10:55", "11:30", "12:15", "12:50", "13:25"]
+HDAY_END: list = ["08:45", "09:20", "10:05", "10:40", "11:30", "12:05", "12:50", "13:25", "13:35"]
 
 
 CFG_DEFAULT = {
@@ -51,27 +53,56 @@ def initiate():
         lsn_cal.add('version', '2.0')
 
 
-def day_event_create(date: str, cycle: str, day: int):
+def event_req(date: str) -> list:
+    if not datetime.strptime(date, "%Y-%m-%d"):
+        raise ValueError
+    else:
+        req = requests.get(f"{EVENT_URL}{date}", cookies=COOKIE)
+        if req.status_code != 200:
+            print(f"Event request failed: {req.status_code}")
+        else:
+            return req.json()
+
+
+def day_event_create(meta: dict):
     event = icalendar.Event()
-    event.add('summary', f"Day {day}, Cycle {cycle}")
-    d = datetime.strptime(date, '%Y-%m-%d').date()
+    if meta["Type"] == "Cycle Day":
+        event.add('summary', f"Day {meta['Day']}, Cycle {meta['Cycle']}")
+    elif meta["Type"] == "Non Cycle Day":
+        event.add('summary', "Non Cycle Day")
+    elif meta["Type"] == "School Holiday":
+        event.add('summary', "School Holiday")
+    else:
+        return
+
+    d = datetime.strptime(meta["Date"], '%Y-%m-%dT00:00:00.000Z').date()
     event.add('dtstart', d)
     event.add('dtend', d)
     event.add('dtstamp', d)
 
+    event_otd = event_req(str(d))
+    if not event_otd:
+        pass
+    else:
+        event.add('description', event_otd[0]["Events"])
+
     day_cal.add_component(event)
 
 
-def lesson_event_create(date: str, day: int):
+def lesson_event_create(meta):
     global FDAY_START, FDAY_END
-    tdy = TIMETABLE[day - 1]
-    for i in range(10):
-        event = icalendar.Event()
-        event.add('summary', tdy[f"P{i+1}_Subj"])
-        event.add('dtstart', datetime.strptime(f"{date} {FDAY_START[i]}", '%Y-%m-%d %H:%M'))
-        event.add('dtend', datetime.strptime(f"{date} {FDAY_END[i]}", '%Y-%m-%d %H:%M'))
-        event.add('dtstamp', datetime.strptime(f"{date} {FDAY_START[i]}", '%Y-%m-%d %H:%M'))
-        lsn_cal.add_component(event)
+    order = meta["Display"]
+    date = datetime.strptime(meta["Date"], '%Y-%m-%dT00:00:00.000Z').date()
+    day = meta["Day"]
+    if order == "F":
+        tdy = TIMETABLE[day - 1]
+        for i in range(10):
+            event = icalendar.Event()
+            event.add('summary', tdy[f"P{i+1}_Subj"])
+            event.add('dtstart', datetime.strptime(f"{date} {FDAY_START[i]}", '%Y-%m-%d %H:%M'))
+            event.add('dtend', datetime.strptime(f"{date} {FDAY_END[i]}", '%Y-%m-%d %H:%M'))
+            event.add('dtstamp', datetime.strptime(f"{date} {FDAY_START[i]}", '%Y-%m-%d %H:%M'))
+            lsn_cal.add_component(event)
 
 
 def main():
@@ -84,21 +115,20 @@ def main():
     print(ttable_req.status_code)
 
     if cal_req.status_code != 200:
-        print("Calendar request failed")
+        print(f"Calendar request failed: {cal_req.status_code}")
     if ttable_req.status_code != 200:
-        print("Timetable requests failed")
+        print(f"Timetable requests failed: {ttable_req.status_code}")
     else:
         CALENDAR = cal_req.json()
         TIMETABLE = ttable_req.json()
 
         for i in CALENDAR:
-            if i["Type"] != "Cycle Day" or i["Display"] != "F":
+            if i["Type"] == "Week End":
                 pass
             else:
-                date = i["Date"].split('T')[0]
-                day = i["Day"]
-                day_event_create(date=date, cycle=i["Cycle"], day=day)
-                lesson_event_create(date=date, day=day)
+                day_event_create(meta=i)
+                if i["Type"] == "Cycle Day":
+                    lesson_event_create(meta=i)
 
         with open('day_cycle.ics', 'wb') as f:
             f.write(day_cal.to_ical())
