@@ -21,6 +21,16 @@ This means you'll have to manually login via the browser in advance to provide a
 
 Ik, ofc ik the captcha is solvable by the machine, ~~I'm just lazy~~ I don't want to make the process complicated :)
 
+2 `.ics` files will be obtained using this program, `day_cycle.ics` and `lesson_timetable.ics`
+
+`day_cycle.ics`:
+
+It should include all the days, cycles, order and events of the day
+
+`lesson_timetable.ics`:
+
+Lesson timetable of each school days, including half day and full day order
+
 ## How to use
 
 ### Standalone executable
@@ -90,15 +100,7 @@ After configuration, execute the `main.exe` or `main.py` again
 
 Wait for a while, you should see in the console the program is doing its thing
 
-Two `.ics` files should be found in the same directory, `day_cycle.ics` and `lesson_timetable.ics`
-
-`day_cycle.ics`:
-
-It should include all the days, cycles, order and events of the day
-
-`lesson_timetable.ics`:
-
-Lesson timetable of each school days, including half day and full day order
+And there you have it, the `.ics` files should appear in the same directory
 
 ---
 This is just a trashy script done by an exhausted student who is too tired from doing papers and revisions
