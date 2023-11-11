@@ -7,3 +7,5 @@
 /config.json
 /lesson_timetable.ics
 /day_cycle.ics
+/main.spec
+/build/

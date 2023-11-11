@@ -6,18 +6,94 @@ It's just a simple script to request the timetable api to provide everything I n
 
 ## How it works
 
-The script uses `cookies` to send requests to timetable api in order to obtain all the results
+The script send requests with cookies to www.wahyan.edu.hk/timetables to obtain info
 
-A `Token` must be provided to make things work
+A `Token` from the login cookies must be provided to make things work
 
-This means you'll have to manually login via the browser to obtain the token before running this script
+This means you'll have to manually login via the browser in advance to provide a working token for this script
 
-Ik, ofc ik the captcha is solvable by the machine, but adding that part will only increase the complexity of this script
+Ik, ofc ik the captcha is solvable by the machine, ~~I'm just lazy~~ I don't want to make the process complicated :)
 
-> The `day_cycle.ics` file simply contains only the cycle and day
+## How to use
 
-> If you want the personalized lesson timetable, execution of the script is needed
+### Standalone executable
 
-The script is in early development stage, documentation is not provided yet
+copy `main.exe` from the repo, it can be found in the `/dist/`
 
-(I don't think there's really a need for documenting this trash script :P
+execute `main.exe`
+
+a `config.json` file should be generated in the same directory
+
+### Direct execution of source code
+
+> If you feel insecure about executing a suspicious executable file from the internet, I suggest using this method
+> 
+> Please have python configured
+
+clone the repo
+
+```commandline
+pip install -r requirements.txt
+```
+
+run the python script
+
+```commandline
+python main.py
+```
+
+a `config.json` file should be generated in the same directory as the script
+
+### Configuration
+
+You should see the following items in the `config.json` file
+
+```json
+{
+    "YEAR": 2023,
+    "TERM": 1,
+    "SID": "",
+    "TOKEN": ""
+}
+```
+
+`YEAR`: school year
+
+`TERM`: school term
+
+`SID`: your student ID (e.g. 23456)
+
+`TOEKN`: your token obtained from cookies
+
+> **How to obtain the token from cookies**
+>
+> I suggest using *EditThisCookie* extension, it can be found in the chrome store
+> 
+> Login the timetable, open *EditThisCookie* and you should see a field named `token`
+>
+> Paste the value of this field in the `TOKEN` in `config.json`
+
+### Export the timetable
+
+After configuration, execute the `main.exe` or `main.py` again
+
+> Make sure the `config.json` is in the same directory
+
+Wait for a while, you should see in the console the program is doing its thing
+
+Two `.ics` files should be found in the same directory, `day_cycle.ics` and `lesson_timetable.ics`
+
+`day_cycle.ics`:
+
+It should include all the days, cycles, order and events of the day
+
+`lesson_timetable.ics`:
+
+Lesson timetable of each school days, including half day and full day order
+
+---
+This is just a trashy script done by an exhausted student who is too tired from doing papers and revisions （；´д｀）ゞ
+
+I am looking forward to any successors from this scu to make a browser script on Tampermonkey that simplifies the entire process
+
+Although ik Ping won't be very happy with it (. ❛ ᴗ ❛.)

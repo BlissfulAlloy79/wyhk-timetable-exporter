@@ -4,7 +4,7 @@ import os
 import icalendar
 from datetime import datetime
 
-# constants
+# constants & variables
 YEAR: int = 2023
 TERM: int = 1
 SID: str = ""
@@ -47,27 +47,25 @@ def initiate():
         TTABLE_URL = f"https://www.wahyan.edu.hk/timetable-api/api/student-timetable?year={YEAR}&term={TERM}&student={SID}"
         COOKIE["token"] = TOKEN
 
-        day_cal.add('prodid', "-//WYHK TIMETABLE EXPORTER//BlissfulAlloy79//")
-        day_cal.add('version', '2.0')
-        lsn_cal.add('prodid', "-//WYHK TIMETABLE EXPORTER//BlissfulAlloy79//")
-        lsn_cal.add('version', '2.0')
-
 
 def event_req(date: str) -> list:
     if not datetime.strptime(date, "%Y-%m-%d"):
         raise ValueError
     else:
+        print(f"Getting event_otd for {date}")
         req = requests.get(f"{EVENT_URL}{date}", cookies=COOKIE)
         if req.status_code != 200:
-            print(f"Event request failed: {req.status_code}")
+            print(f"Event of {date} request failed: {req.status_code}")
         else:
             return req.json()
 
 
+# noinspection SpellCheckingInspection
 def day_event_create(meta: dict):
     event = icalendar.Event()
+    order = f" (Half-day)" if meta["Display"] == "H" else ""
     if meta["Type"] == "Cycle Day":
-        event.add('summary', f"Day {meta['Day']}, Cycle {meta['Cycle']}")
+        event.add('summary', f"Day {meta['Day']}, Cycle {meta['Cycle']}{order}")
     elif meta["Type"] == "Non Cycle Day":
         event.add('summary', "Non Cycle Day")
     elif meta["Type"] == "School Holiday":
@@ -89,7 +87,8 @@ def day_event_create(meta: dict):
     day_cal.add_component(event)
 
 
-def lesson_event_create(meta):
+# noinspection SpellCheckingInspection
+def lesson_event_create(meta: dict):
     global FDAY_START, FDAY_END
     order = meta["Display"]
     date = datetime.strptime(meta["Date"], '%Y-%m-%dT00:00:00.000Z').date()
@@ -127,10 +126,12 @@ def lesson_event_create(meta):
         lsn_cal.add_component(event)
 
 
+# noinspection SpellCheckingInspection
 def main():
     global CALENDAR, TIMETABLE
     initiate()
 
+    print("Scraping contents")
     cal_req = requests.get(CAL_URL, cookies=COOKIE)
     ttable_req = requests.get(TTABLE_URL, cookies=COOKIE)
     print(cal_req.status_code)
@@ -144,6 +145,7 @@ def main():
         CALENDAR = cal_req.json()
         TIMETABLE = ttable_req.json()
 
+        print("Creating calendar events")
         for i in CALENDAR:
             if i["Type"] == "Week End":
                 pass
@@ -152,6 +154,11 @@ def main():
                 if i["Type"] == "Cycle Day":
                     lesson_event_create(meta=i)
 
+        print("Exporting calendars")
+        day_cal.add('prodid', "-//WYHK TIMETABLE EXPORTER//BlissfulAlloy79//")
+        day_cal.add('version', '2.0')
+        lsn_cal.add('prodid', "-//WYHK TIMETABLE EXPORTER//BlissfulAlloy79//")
+        lsn_cal.add('version', '2.0')
         with open('day_cycle.ics', 'wb') as f:
             f.write(day_cal.to_ical())
         with open('lesson_timetable.ics', 'wb') as f:
@@ -162,7 +169,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
