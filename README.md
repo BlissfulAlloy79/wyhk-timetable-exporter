@@ -92,7 +92,9 @@ It should include all the days, cycles, order and events of the day
 Lesson timetable of each school days, including half day and full day order
 
 ---
-This is just a trashy script done by an exhausted student who is too tired from doing papers and revisions （；´д｀）ゞ
+This is just a trashy script done by an exhausted student who is too tired from doing papers and revisions
+
+（；´д｀）ゞ
 
 I am looking forward to any successors from this scu to make a browser script on Tampermonkey that simplifies the entire process
 
